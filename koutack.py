@@ -1,6 +1,7 @@
 '''NAMES OF THE AUTHOR(S): ...'''
 
 from itertools import chain
+from math import ceil
 from search import *
 
 
@@ -29,7 +30,7 @@ class State :
 
         if (i) % self.rowLength != 0:               #dont get previous line
             neighbours.append( (i-1, self.getValidTile(i-1)) )
-        
+
         neighbours.append( (i+self.rowLength, self.getValidTile(i+self.rowLength)) )
         neighbours.append( (i-self.rowLength, self.getValidTile(i-self.rowLength)) )
     
@@ -52,7 +53,6 @@ class State :
     def __str__(self):
         string = ""
         i = 1
-        print(self.rowLength)
         for tile in self.array:
             if tile == ():
                 string += '.'
@@ -66,7 +66,7 @@ class State :
                     
             i += 1
 
-        return string[:-1]
+        return string
          
 ######################  Implement the search #######################
 
@@ -83,7 +83,7 @@ class Koutack(Problem):
                     self.initial.addTile(())
                 else:
                     self.initial.addTile((tile[0],))
-        self.initial.rowLength = len(line)/2 + 1    #no /n on EOF
+        self.initial.rowLength = ceil(len(line)/2)    #no /n on EOF
     
         print(self.initial)
         #print(self.successor(self.initial).next()[1])
