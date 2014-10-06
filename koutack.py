@@ -1,7 +1,7 @@
 '''NAMES OF THE AUTHOR(S): ...'''
 
 from search import *
-from copy import deepcopy
+from itertools import chain
 
 ######################  State class  ###############################
 
@@ -21,39 +21,20 @@ class State :
         self.array[x][y] = val
 
     def isSolution(self):
-        empty = True
+        total = 0
         for row in self.array:
-            for tile in row:
-                if tile:
-                    if not empty:
-                        return False
-                    empty = False
-        return True
-
-    def successor(self):
-        for i in range(len(self.array)):
-            for j in range(len(self.array[0])):
-                if self.array[i][j] == () :
-                    neighbours = self.getNeighbours(i, j)
-                    if len(neighbours) > 1:
-                        nextState = deepcopy(self)
-                        nextState.set(i,j, tuple(neighbours))
-                        nextState.set(i+1,j, ())
-                        nextState.set(i,j+1, ())
-                        nextState.set(i-1,j, ())
-                        nextState.set(i,j-1, ())
-                        yield (None, nextState)
-
+            total += len([tile for tile in row if tile]) 
+        return total == 1
 
     # returns a list of non-empty neighbours of (i,j)
     def getNeighbours(self, i, j):
         neighbours = []
 
-        if i > 0 and self.array[i-1][j]: neighbours += self.array[i-1][j]
-        if j > 0 and self.array[i][j-1]: neighbours += self.array[i][j-1]
-        if i < len(self.array) - 1 and self.array[i+1][j]: neighbours += self.array[i+1][j]
-        if j < len(self.array[0]) - 1 and self.array[i][j+1]: neighbours += self.array[i][j+1] 
-        
+        if i > 0 and self.array[i-1][j]: neighbours.append(self.array[i-1][j])
+        if j > 0 and self.array[i][j-1]: neighbours.append(self.array[i][j-1])
+        if i < (len(self.array) - 1): neighbours.append(self.array[i+1][j])
+        if j < (len(self.array[0]) - 1): neighbours.append(self.array[i][j+1])
+
         return [ x for x in neighbours if x != () ]
 
     def __str__(self) :
@@ -90,7 +71,22 @@ class Koutack(Problem):
 
 
     def successor(self, state):
-        yield from state.successor()
+        for i in range(len(state.array)):
+            for j in range(len(state.array[0])):
+                if state.array[i][j] == () :
+                    neighbours = state.getNeighbours(i, j)
+                    if len(neighbours) > 1:
+                        nextState = State()
+                        for row in state.array:
+                            nextState.appendRow([x for x in row]);
+                            
+                        nextState.set(i,j, tuple(chain(*neighbours)))
+                        nextState.set(i+1,j, ())
+                        nextState.set(i,j+1, ())
+                        nextState.set(i-1,j, ())
+                        nextState.set(i,j-1, ())
+                        yield ((i,j), nextState)
+        #yield from state.successor()
 
 ###################### Launch the search #########################
 problem=Koutack(sys.argv[1])
