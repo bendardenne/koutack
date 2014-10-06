@@ -47,7 +47,7 @@ class State :
         for index in indexes:
             self.array[index] = ()
         
-        self.array[pos] = tuple(chain(*values))
+        self.array[pos] = tuple(sorted(chain(*values)))
 
 
     def __str__(self):
@@ -67,7 +67,13 @@ class State :
             i += 1
 
         return string
-         
+        
+    def __hash__(self):
+        return tuple(self.array).__hash__()
+    
+    def __eq__(self, other):
+        return self.array == other.array
+
 ######################  Implement the search #######################
 
 class Koutack(Problem):
@@ -84,27 +90,20 @@ class Koutack(Problem):
                 else:
                     self.initial.addTile((tile[0],))
         self.initial.rowLength = ceil(len(line)/2)    #no /n on EOF
-    
-        print(self.initial)
-        #print(self.successor(self.initial).next()[1])
-    
         
-    
+
     def goal_test(self, state):
         return state.isSolution()
 
 
     def successor(self, state):
         for index in range(len(state.array)):
-            #print(i)
-            #print(state.getNeighbours(i))
             if not state.array[index] :#and state.getNeighbours(i):
                 
                 neighbours = state.getNeighbours(index)
                 if len(neighbours) > 1:
                     nextState = State(state.array[:], state.rowLength)
                     nextState.play(neighbours,index)
-    
                     yield (index, nextState)
 
 ###################### Launch the search #########################
