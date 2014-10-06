@@ -1,5 +1,6 @@
 '''NAMES OF THE AUTHOR(S): ...'''
 
+import re
 from search import *
 
 
@@ -9,31 +10,56 @@ class State :
 
     def __init__(self):
         self.array = []
+        self.rowLength = 0
     
-    def appendRow(self, row):
-        self.array.append(row)
+    
+    def addTile(self, tile):
+        self.array.append(tile)
+
 
     def isSolution(self):
-        empty = True
-        for row in self.array:
-            for tile in row:
-                if tile:
-                    if not empty:
-                        return False
-                    empty = False
-        return  True
+        return len([tile for tile in self.array if tile]) == 1
 
-    def __str__(self) :
+
+    def getNeighbours(self, i):
+        neighbours = []
+        
+        if (i+1) % self.rowLength != 0:             #dont get next line
+            neighbours += self.getValidTile(i+1)
+
+        if (i) % self.rowLength != 0:
+            neighbours += self.getValidTile(i-1)    #dont get previous line
+        
+        neighbours += self.getValidTile(i+self.rowLength)
+        neighbours += self.getValidTile(i-self.rowLength)
+    
+        return [x for x in neighbours if x]
+    
+    def getValidTile(self, pos):
+        if pos < len(self.array) and pos >= 0:
+            return self.array[pos]
+        else:
+            return ()
+
+    
+    def __str__(self):
         string = ""
-        for row in self.array:
-            for tile in row:
-                if tile == ():
-                    string += '.'
-                else: 
-                    string += (tile[0] if len(tile) == 1 else "[" + ",".join(tile) + "]")
+        i = 1
+        print(self.rowLength)
+        for tile in self.array:
+            if tile == ():
+                string += '.'
+            else:
+                string += (tile[0] if len(tile) == 1 else "[" + ",".join(tile) + "]")
+
+            if i % self.rowLength == 0:
+                string += '\n'
+            else:
                 string += ' '
-            string = string[:-1] + '\n'
-        return string        
+                    
+            i += 1
+
+        return string[:-1]
          
 ######################  Implement the search #######################
 
@@ -43,15 +69,17 @@ class Koutack(Problem):
         self.initial = State()
         f = open(init, 'r')
         line = []
+        
         for line in f:
-            row = []
             for tile in line.split():
                 if (tile == "."):
-                    row.append(())
+                    self.initial.addTile(())
                 else:
-                    row.append((tile[0],))
-            self.initial.appendRow(row)
-        print(self.initial.isSolution()) 
+                    self.initial.addTile((tile[0],))
+        self.initial.rowLength = len(line)/2 + 1    #no /n on EOF
+    
+        print(self.initial)
+        self.successor(self.initial)
         
     
     def goal_test(self, state):
@@ -59,7 +87,19 @@ class Koutack(Problem):
 
 
     def successor(self, state):
-        pass
+        for i in range(len(state.array)):
+            #print(i)
+            print(state.getNeighbours(i))
+            if not state.array[i] :#and state.getNeighbours(i):
+                
+                neighbours = state.getNeighbours(i)
+                if neighbours:
+                    nextState = State()
+                    nextState.array = state.array[:]  #copy the new state
+                    #nextState.play(i)
+    
+
+        return 0
         
 
 ###################### Launch the search #########################
