@@ -1,6 +1,6 @@
 '''NAMES OF THE AUTHOR(S): ...'''
 
-import re
+from itertools import chain
 from search import *
 
 
@@ -8,9 +8,9 @@ from search import *
 
 class State :
 
-    def __init__(self):
-        self.array = []
-        self.rowLength = 0
+    def __init__(self, newArray=[], length=0):
+        self.array = newArray
+        self.rowLength = length
     
     
     def addTile(self, tile):
@@ -25,15 +25,15 @@ class State :
         neighbours = []
         
         if (i+1) % self.rowLength != 0:             #dont get next line
-            neighbours += self.getValidTile(i+1)
+            neighbours.append( (i+1, self.getValidTile(i+1)) )
 
-        if (i) % self.rowLength != 0:
-            neighbours += self.getValidTile(i-1)    #dont get previous line
+        if (i) % self.rowLength != 0:               #dont get previous line
+            neighbours.append( (i-1, self.getValidTile(i-1)) )
         
-        neighbours += self.getValidTile(i+self.rowLength)
-        neighbours += self.getValidTile(i-self.rowLength)
+        neighbours.append( (i+self.rowLength, self.getValidTile(i+self.rowLength)) )
+        neighbours.append( (i-self.rowLength, self.getValidTile(i-self.rowLength)) )
     
-        return [x for x in neighbours if x]
+        return [x for x in neighbours if x[1]]
     
     def getValidTile(self, pos):
         if pos < len(self.array) and pos >= 0:
@@ -41,7 +41,14 @@ class State :
         else:
             return ()
 
-    
+    def play(self, neighbours, pos):
+        indexes,values = zip(*neighbours)
+        for index in indexes:
+            self.array[index] = ()
+        
+        self.array[pos] = tuple(chain(*values))
+
+
     def __str__(self):
         string = ""
         i = 1
@@ -79,7 +86,8 @@ class Koutack(Problem):
         self.initial.rowLength = len(line)/2 + 1    #no /n on EOF
     
         print(self.initial)
-        self.successor(self.initial)
+        #print(self.successor(self.initial).next()[1])
+    
         
     
     def goal_test(self, state):
@@ -87,31 +95,28 @@ class Koutack(Problem):
 
 
     def successor(self, state):
-        for i in range(len(state.array)):
+        for index in range(len(state.array)):
             #print(i)
-            print(state.getNeighbours(i))
-            if not state.array[i] :#and state.getNeighbours(i):
+            #print(state.getNeighbours(i))
+            if not state.array[index] :#and state.getNeighbours(i):
                 
-                neighbours = state.getNeighbours(i)
-                if neighbours:
-                    nextState = State()
-                    nextState.array = state.array[:]  #copy the new state
-                    #nextState.play(i)
+                neighbours = state.getNeighbours(index)
+                if len(neighbours) > 1:
+                    nextState = State(state.array[:], state.rowLength)
+                    nextState.play(neighbours,index)
     
-
-        return 0
-        
+                    yield (index, nextState)
 
 ###################### Launch the search #########################
 problem=Koutack(sys.argv[1])
 
-"""    
+
 #example of bfs search
-node=breadth_first_graph_search(problem)
+node = breadth_first_graph_search(problem)
+
 #example of print
-path=node.path()
+path = node.path()
 path.reverse()
 for n in path:
     print(n.state) #assuming that the __str__ function of states output the correct format
 
-   """     
