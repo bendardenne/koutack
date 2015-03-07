@@ -79,6 +79,7 @@ class State :
 class Koutack(Problem):
 
     def __init__(self,init):
+        self.visited = 0
         self.initial = State()
         f = open(init, 'r')
         line = []
@@ -104,18 +105,22 @@ class Koutack(Problem):
                 if len(neighbours) > 1:
                     nextState = State(state.array[:], state.rowLength)
                     nextState.play(neighbours,index)
+                    self.visited += 1
                     yield (index, nextState)
 
 ###################### Launch the search #########################
 problem=Koutack(sys.argv[1])
 
-
+try :
 #example of bfs search
-node = breadth_first_graph_search(problem)
-
-#example of print
-path = node.path()
-path.reverse()
-for n in path:
-    print(n.state) #assuming that the __str__ function of states output the correct format
+    node = depth_first_tree_search(problem)
+    path = node.path()
+    path.reverse()
+    for n in path:
+        print(n.state) #assuming that the __str__ function of states output the correct format
+except MemoryError:
+    pass 
+finally:
+    print("Visited nodes: " + str(problem.visited))
+    print("Path length" + str(len(path)))
 
